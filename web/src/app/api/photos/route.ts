@@ -1,4 +1,5 @@
 import { searchReferencePhotos } from "@/lib/serpapi";
+import { getSerpapiUsage, recordSerpapiUsage } from "@/lib/serpapiUsage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +12,14 @@ export async function GET(request: Request) {
     return Response.json({ error: "Parâmetro 'q' é obrigatório." }, { status: 400 });
   }
 
+  const usageBefore = await getSerpapiUsage();
+
+  if (usageBefore.remaining <= 0) {
+    return Response.json({ photos: [], usage: usageBefore });
+  }
+
   const photos = await searchReferencePhotos(query);
-  return Response.json({ photos });
+  const usage = await recordSerpapiUsage();
+
+  return Response.json({ photos, usage });
 }
