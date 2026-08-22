@@ -16,7 +16,7 @@ model Product {
   currency       String?
   mediumPriceBrl Float?
   sellPriceBrl   Float?
-  titles         Json
+  title          String
   description    String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

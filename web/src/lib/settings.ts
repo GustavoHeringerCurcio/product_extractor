@@ -26,3 +26,66 @@ export async function getFxRates(): Promise<FxRates> {
   }
   return rates;
 }
+
+export const DEFAULT_TITLE_PROMPT = `Você é um especialista em títulos para anúncios em marketplaces brasileiros (OLX e Facebook Marketplace).
+
+Gere UM único título em português para o produto descrito nas informações fornecidas.
+
+Regras:
+- Curto e objetivo: "nome do produto + estado de conservação".
+- Considere sempre que o produto é NOVO (novo e lacrado).
+- NÃO use as frases "em ótimo estado" nem "excelente estado".
+- NÃO use palavras como "vendo", "compro", "oportunidade" nem símbolos especiais (@, #, $, %, *).
+- Responda APENAS com o título, sem aspas e sem texto adicional.`;
+
+export const DEFAULT_DESCRIPTION_PROMPT = `Você é um especialista em descrições para anúncios em marketplaces brasileiros (OLX e Facebook Marketplace).
+
+Escreva UMA única descrição em português, clara e persuasiva, com as especificações do produto e motivos para comprar, com base nas informações fornecidas.
+
+Regras:
+- Sem links e sem e-mails.
+- Sempre finalize a descrição EXATAMENTE com estas duas linhas, cada uma em uma linha separada:
+  "Somente retirada comigo, moro perto do shopping parksul."
+  "Parcelo em Até 12x na maquininha com juros."`;
+
+const PROMPT_KEYS = ["PROMPT_TITLE", "PROMPT_DESCRIPTION"] as const;
+
+export type Prompts = {
+  title: string;
+  description: string;
+};
+
+export async function getPrompts(): Promise<Prompts> {
+  const prompts: Prompts = {
+    title: DEFAULT_TITLE_PROMPT,
+    description: DEFAULT_DESCRIPTION_PROMPT,
+  };
+  try {
+    const rows = await prisma.setting.findMany({
+      where: { key: { in: [...PROMPT_KEYS] } },
+    });
+    for (const row of rows) {
+      if (row.key === "PROMPT_TITLE") prompts.title = row.value;
+      if (row.key === "PROMPT_DESCRIPTION") prompts.description = row.value;
+    }
+  } catch {
+    // DB unavailable: fall back to defaults.
+  }
+  return prompts;
+}
+
+export async function savePrompts(prompts: Prompts): Promise<Prompts> {
+  await prisma.$transaction([
+    prisma.setting.upsert({
+      where: { key: "PROMPT_TITLE" },
+      update: { value: prompts.title },
+      create: { key: "PROMPT_TITLE", value: prompts.title },
+    }),
+    prisma.setting.upsert({
+      where: { key: "PROMPT_DESCRIPTION" },
+      update: { value: prompts.description },
+      create: { key: "PROMPT_DESCRIPTION", value: prompts.description },
+    }),
+  ]);
+  return prompts;
+}

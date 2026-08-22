@@ -1,5 +1,5 @@
 import { analyzeImage } from "@/lib/ai";
-import { getFxRates } from "@/lib/settings";
+import { getFxRates, getPrompts } from "@/lib/settings";
 import { sellPrice, toBrl, type FxRates } from "@/lib/pricing";
 import type { AnalyzedProduct, ProductResult } from "@/lib/schema";
 
@@ -23,7 +23,7 @@ function toAnalyzedProduct(result: ProductResult, fx: FxRates): AnalyzedProduct 
     currency: result.price?.currency ?? null,
     mediumPriceBrl,
     sellPriceBrl: sellPrice(mediumPriceBrl),
-    titles: result.titles,
+    title: result.title,
     description: result.description,
   };
 }
@@ -79,6 +79,7 @@ export async function POST(request: Request) {
   }
 
   const fx = await getFxRates();
+  const prompts = await getPrompts();
 
   const items = await mapLimit(files, CONCURRENCY, async (file, index) => {
     try {
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
       const base64 = buffer.toString("base64");
       const mimeType = file.type || "image/png";
 
-      const result = await analyzeImage(base64, mimeType, fx);
+      const result = await analyzeImage(base64, mimeType, fx, prompts);
       return {
         index,
         status: "ok" as const,

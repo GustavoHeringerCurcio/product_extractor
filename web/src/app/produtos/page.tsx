@@ -12,7 +12,7 @@ export default async function ProdutosPage() {
   const products = rows.map((row) => ({
     id: row.id,
     productName: row.productName,
-    subtitle: ((row.titles as string[])?.[0]) ?? row.description,
+    subtitle: row.title ?? row.description,
     sellPriceBrl: row.sellPriceBrl,
   }));
 

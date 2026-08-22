@@ -12,20 +12,72 @@ type Props = {
   onDeleted?: (id: string) => void;
 };
 
+function SparklesIcon({ spinning }: { spinning: boolean }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={`h-5 w-5 ${spinning ? "animate-spin" : ""}`}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"
+      />
+    </svg>
+  );
+}
+
 export function ProductResultCard({ product, mode, onDeleted }: Props) {
-  const [titles, setTitles] = useState<string[]>(product.titles);
+  const [title, setTitle] = useState(product.title);
   const [description, setDescription] = useState(product.description);
-  const [selected, setSelected] = useState(0);
-  const [showAllTitles, setShowAllTitles] = useState(true);
+  const [regenerating, setRegenerating] = useState<"title" | "description" | null>(
+    null,
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const payload: AnalyzedProduct = {
     ...product,
-    titles,
+    title,
     description,
   };
+
+  async function regenerate(type: "title" | "description") {
+    const current = type === "title" ? title : description;
+    setRegenerating(type);
+    setError(null);
+    try {
+      const res = await fetch("/api/regenerate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          current,
+          product: {
+            productName: product.productName,
+            category: product.category,
+            specs: product.specs,
+            aliPrice: product.aliPrice,
+            currency: product.currency,
+            mediumPriceBrl: product.mediumPriceBrl,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Falha ao gerar novo texto.");
+      if (type === "title") setTitle(data.output);
+      else setDescription(data.output);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao gerar novo texto.");
+    } finally {
+      setRegenerating(null);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -62,6 +114,9 @@ export function ProductResultCard({ product, mode, onDeleted }: Props) {
     const res = await fetch(`/api/products/${product.id}`, { method: "DELETE" });
     if (res.ok) onDeleted?.(product.id);
   }
+
+  const titleLoading = regenerating === "title";
+  const descriptionLoading = regenerating === "description";
 
   return (
     <article className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -109,76 +164,47 @@ export function ProductResultCard({ product, mode, onDeleted }: Props) {
 
       <div className="mb-5">
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-zinc-900">
-            Títulos sugeridos
-          </h3>
-          <CopyButton text={titles[selected] ?? ""} label="Copiar selecionado" />
-        </div>
-
-        {showAllTitles ? (
-          <ol className="space-y-2">
-            {titles.map((title, i) => (
-              <li
-                key={i}
-                className={`flex items-center gap-2 rounded-lg border p-2 ${
-                  selected === i
-                    ? "border-zinc-900 bg-zinc-50"
-                    : "border-zinc-200"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name={`title-${product.id ?? product.productName}`}
-                  checked={selected === i}
-                  onChange={() => {
-                    setSelected(i);
-                    setShowAllTitles(false);
-                  }}
-                  className="shrink-0 accent-zinc-900"
-                  aria-label={`Selecionar título ${i + 1}`}
-                />
-                <input
-                  value={title}
-                  onChange={(e) =>
-                    setTitles((prev) =>
-                      prev.map((t, j) => (j === i ? e.target.value : t)),
-                    )
-                  }
-                  className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 text-sm text-zinc-800 focus:border-zinc-300 focus:bg-white focus:outline-none"
-                />
-                <CopyButton text={title} />
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-900 bg-zinc-50 p-2">
-              <input
-                value={titles[selected] ?? ""}
-                onChange={(e) =>
-                  setTitles((prev) =>
-                    prev.map((t, j) => (j === selected ? e.target.value : t)),
-                  )
-                }
-                className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm font-medium text-zinc-900 focus:outline-none"
-              />
-              <CopyButton text={titles[selected] ?? ""} />
-            </div>
+          <h3 className="text-sm font-semibold text-zinc-900">Título</h3>
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowAllTitles(true)}
-              className="text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+              onClick={() => regenerate("title")}
+              disabled={titleLoading}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50"
+              aria-label="Gerar outro título"
+              title="Gerar outro título"
             >
-              Trocar título (ver as 5 opções)
+              <SparklesIcon spinning={titleLoading} />
             </button>
+            <CopyButton text={title} label="Copiar título" />
           </div>
-        )}
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-zinc-200 p-2 focus-within:border-zinc-400">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm font-medium text-zinc-900 focus:outline-none"
+          />
+          <CopyButton text={title} />
+        </div>
       </div>
 
       <div className="mb-4">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-zinc-900">Descrição</h3>
-          <CopyButton text={description} label="Copiar descrição" />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => regenerate("description")}
+              disabled={descriptionLoading}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50"
+              aria-label="Gerar outra descrição"
+              title="Gerar outra descrição"
+            >
+              <SparklesIcon spinning={descriptionLoading} />
+            </button>
+            <CopyButton text={description} label="Copiar descrição" />
+          </div>
         </div>
         <textarea
           value={description}

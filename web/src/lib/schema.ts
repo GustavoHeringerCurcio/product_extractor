@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+export const productInfoSchema = z.object({
+  product_name: z.string(),
+  category: z.string(),
+  specs: z.array(z.string()),
+  price: z
+    .object({
+      amount: z.number(),
+      currency: z.enum(["USD", "CNY", "BRL"]),
+    })
+    .nullable(),
+  medium_price_brl: z.number(),
+});
+
+export type ProductInfo = z.infer<typeof productInfoSchema>;
+
 export const productResultSchema = z.object({
   product_name: z.string(),
   category: z.string(),
@@ -11,7 +26,7 @@ export const productResultSchema = z.object({
     })
     .nullable(),
   medium_price_brl: z.number(),
-  titles: z.array(z.string()).length(5),
+  title: z.string(),
   description: z.string(),
 });
 
@@ -28,7 +43,7 @@ export type AnalyzedProduct = {
   currency: Currency | null;
   mediumPriceBrl: number;
   sellPriceBrl: number;
-  titles: string[];
+  title: string;
   description: string;
 };
 
@@ -40,7 +55,7 @@ export const saveProductSchema = z.object({
   currency: z.enum(["USD", "CNY", "BRL"]).nullish(),
   mediumPriceBrl: z.number(),
   sellPriceBrl: z.number(),
-  titles: z.array(z.string()).min(1),
+  title: z.string().min(1),
   description: z.string(),
 });
 

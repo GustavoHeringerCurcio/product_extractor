@@ -13,7 +13,7 @@ type ProductRow = {
   currency: string | null;
   mediumPriceBrl: number | null;
   sellPriceBrl: number | null;
-  titles: unknown;
+  title: string;
   description: string;
   createdAt: Date;
   updatedAt: Date;
@@ -29,7 +29,7 @@ function toDto(row: ProductRow) {
     currency: row.currency,
     mediumPriceBrl: row.mediumPriceBrl,
     sellPriceBrl: row.sellPriceBrl,
-    titles: (row.titles as string[]) ?? [],
+    title: row.title,
     description: row.description,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       currency: data.currency ?? null,
       mediumPriceBrl: data.mediumPriceBrl,
       sellPriceBrl: data.sellPriceBrl,
-      titles: data.titles,
+      title: data.title,
       description: data.description,
     },
   });

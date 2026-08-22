@@ -6,10 +6,13 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/", label: "Novo anúncio" },
   { href: "/produtos", label: "Meus produtos" },
+  { href: "/prompts", label: "Prompts" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+
+  if (pathname === "/login") return null;
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-zinc-200 bg-white">
@@ -38,6 +41,12 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <a
+        href="/api/logout"
+        className="mt-auto px-5 py-4 text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+      >
+        Sair
+      </a>
     </aside>
   );
 }

@@ -23,7 +23,7 @@ export default async function ProdutoDetalhePage(
     currency: (row.currency as AnalyzedProduct["currency"]) ?? null,
     mediumPriceBrl: row.mediumPriceBrl ?? 0,
     sellPriceBrl: row.sellPriceBrl ?? 0,
-    titles: (row.titles as string[]) ?? [],
+    title: row.title,
     description: row.description,
   };
 
