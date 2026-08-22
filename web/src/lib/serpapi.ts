@@ -3,6 +3,8 @@ export type ReferencePhoto = {
   thumbnail: string;
   source: string;
   title: string;
+  link: string;
+  isProduct: boolean;
 };
 
 export async function searchReferencePhotos(
@@ -14,6 +16,7 @@ export async function searchReferencePhotos(
   const params = new URLSearchParams({
     engine: "google_images",
     q: query,
+    as_sitesearch: "olx.com.br",
     hl: "pt-BR",
     gl: "br",
     imgsz: "l",
@@ -32,17 +35,21 @@ export async function searchReferencePhotos(
         thumbnail?: string;
         source?: string;
         title?: string;
+        link?: string;
+        is_product?: boolean;
       }>;
     };
 
     return (data.images_results ?? [])
-      .filter((item) => item.original)
+      .filter((item) => item.original && item.is_product === false)
       .slice(0, 12)
       .map((item) => ({
         original: item.original as string,
-        thumbnail: item.thumbnail ?? (item.original as string),
+        thumbnail: item.original as string,
         source: item.source ?? "",
         title: item.title ?? "",
+        link: item.link ?? "",
+        isProduct: item.is_product ?? false,
       }));
   } catch {
     return [];

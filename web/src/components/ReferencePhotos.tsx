@@ -71,25 +71,30 @@ export function ReferencePhotos({ query }: { query: string }) {
       {photos.length > 0 && (
         <>
           <p className="mb-2 text-xs text-zinc-500">
-            Apenas referência — não copie fotos de outros vendedores.
+            Fotos reais de anúncios no OLX — apenas referência, não copie fotos de
+            outros vendedores.
           </p>
           <div className="grid grid-cols-4 gap-2">
             {photos.map((p, i) => (
               <a
                 key={i}
-                href={p.original}
+                href={p.link || p.original}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block overflow-hidden rounded-lg border border-zinc-200"
-                title={p.title || p.source}
+                className="relative block overflow-hidden rounded-lg border border-zinc-200"
+                title={`${p.title || "Anúncio OLX"}\n${p.link}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={p.thumbnail}
-                  alt={p.title || "foto de referência"}
+                  alt={p.title || "foto de referência do OLX"}
                   className="h-24 w-full object-cover"
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                 />
+                <span className="absolute bottom-1 left-1 rounded bg-zinc-900/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  OLX
+                </span>
               </a>
             ))}
           </div>
