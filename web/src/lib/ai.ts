@@ -18,11 +18,16 @@ Tarefa: analise a imagem (um screenshot de um produto no AliExpress) e produza u
 
 Regras para os títulos:
 - Curtos e objetivos: "nome do produto + estado de conservação".
+- Sempre considere que o produto é NOVO (novo e lacrado).
+- NÃO use as frases "em ótimo estado" nem "excelente estado".
 - NÃO use palavras como "vendo", "compro", "oportunidade" nem símbolos especiais (@, #, $, %, *, etc.).
 
 Regras para a descrição:
 - Clara e persuasiva, com as especificações e motivos para comprar.
 - Sem links e sem e-mails.
+- Sempre finalize a descrição EXATAMENTE com estas duas linhas, cada uma em uma linha separada:
+  "Somente retirada comigo, moro perto do shopping parksul."
+  "Parcelo em Até 12x na maquininha com juros."
 
 Regras gerais:
 - Sempre responda em português do Brasil.

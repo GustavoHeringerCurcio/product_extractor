@@ -1,6 +1,6 @@
 import { analyzeImage } from "@/lib/ai";
 import { getFxRates } from "@/lib/settings";
-import { sellPrice } from "@/lib/pricing";
+import { sellPrice, toBrl, type FxRates } from "@/lib/pricing";
 import type { AnalyzedProduct, ProductResult } from "@/lib/schema";
 
 export const runtime = "nodejs";
@@ -10,8 +10,11 @@ const MAX_FILES = 10;
 const MAX_BYTES = 5 * 1024 * 1024;
 const CONCURRENCY = 3;
 
-function toAnalyzedProduct(result: ProductResult): AnalyzedProduct {
-  const mediumPriceBrl = result.medium_price_brl;
+function toAnalyzedProduct(result: ProductResult, fx: FxRates): AnalyzedProduct {
+  const imagePriceBrl = result.price
+    ? toBrl(result.price.amount, result.price.currency, fx)
+    : null;
+  const mediumPriceBrl = imagePriceBrl ?? result.medium_price_brl;
   return {
     productName: result.product_name,
     category: result.category,
@@ -94,7 +97,7 @@ export async function POST(request: Request) {
       return {
         index,
         status: "ok" as const,
-        product: toAnalyzedProduct(result),
+        product: toAnalyzedProduct(result, fx),
       };
     } catch (err) {
       return {

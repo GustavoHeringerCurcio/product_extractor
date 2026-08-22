@@ -16,7 +16,7 @@ export async function searchReferencePhotos(
     q: query,
     hl: "pt-BR",
     gl: "br",
-    imgsz: "large",
+    imgsz: "l",
     api_key: apiKey,
   });
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatBrl } from "@/lib/format";
+import { ProductList } from "@/components/ProductList";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +8,13 @@ export default async function ProdutosPage() {
   const rows = await prisma.product.findMany({
     orderBy: { createdAt: "desc" },
   });
+
+  const products = rows.map((row) => ({
+    id: row.id,
+    productName: row.productName,
+    subtitle: ((row.titles as string[])?.[0]) ?? row.description,
+    sellPriceBrl: row.sellPriceBrl,
+  }));
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -32,36 +39,7 @@ export default async function ProdutosPage() {
           </p>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {rows.map((row) => {
-            const titles = (row.titles as string[]) ?? [];
-            return (
-              <li key={row.id}>
-                <Link
-                  href={`/produtos/${row.id}`}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-400"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-zinc-900">
-                      {row.productName}
-                    </p>
-                    <p className="truncate text-sm text-zinc-500">
-                      {titles[0] ?? row.description}
-                    </p>
-                  </div>
-                  {row.sellPriceBrl != null && (
-                    <div className="shrink-0 text-right">
-                      <p className="text-xs text-zinc-500">Venda</p>
-                      <p className="font-semibold text-emerald-700">
-                        {formatBrl(row.sellPriceBrl)}
-                      </p>
-                    </div>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <ProductList products={products} />
       )}
     </div>
   );

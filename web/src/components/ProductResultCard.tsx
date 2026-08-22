@@ -16,6 +16,7 @@ export function ProductResultCard({ product, mode, onDeleted }: Props) {
   const [titles, setTitles] = useState<string[]>(product.titles);
   const [description, setDescription] = useState(product.description);
   const [selected, setSelected] = useState(0);
+  const [showAllTitles, setShowAllTitles] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,35 +114,65 @@ export function ProductResultCard({ product, mode, onDeleted }: Props) {
           </h3>
           <CopyButton text={titles[selected] ?? ""} label="Copiar selecionado" />
         </div>
-        <ol className="space-y-2">
-          {titles.map((title, i) => (
-            <li
-              key={i}
-              className={`flex items-center gap-2 rounded-lg border p-2 ${
-                selected === i ? "border-zinc-900 bg-zinc-50" : "border-zinc-200"
-              }`}
-            >
+
+        {showAllTitles ? (
+          <ol className="space-y-2">
+            {titles.map((title, i) => (
+              <li
+                key={i}
+                className={`flex items-center gap-2 rounded-lg border p-2 ${
+                  selected === i
+                    ? "border-zinc-900 bg-zinc-50"
+                    : "border-zinc-200"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`title-${product.id ?? product.productName}`}
+                  checked={selected === i}
+                  onChange={() => {
+                    setSelected(i);
+                    setShowAllTitles(false);
+                  }}
+                  className="shrink-0 accent-zinc-900"
+                  aria-label={`Selecionar título ${i + 1}`}
+                />
+                <input
+                  value={title}
+                  onChange={(e) =>
+                    setTitles((prev) =>
+                      prev.map((t, j) => (j === i ? e.target.value : t)),
+                    )
+                  }
+                  className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 text-sm text-zinc-800 focus:border-zinc-300 focus:bg-white focus:outline-none"
+                />
+                <CopyButton text={title} />
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-900 bg-zinc-50 p-2">
               <input
-                type="radio"
-                name={`title-${product.id ?? product.productName}`}
-                checked={selected === i}
-                onChange={() => setSelected(i)}
-                className="shrink-0 accent-zinc-900"
-                aria-label={`Selecionar título ${i + 1}`}
-              />
-              <input
-                value={title}
+                value={titles[selected] ?? ""}
                 onChange={(e) =>
                   setTitles((prev) =>
-                    prev.map((t, j) => (j === i ? e.target.value : t)),
+                    prev.map((t, j) => (j === selected ? e.target.value : t)),
                   )
                 }
-                className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 text-sm text-zinc-800 focus:border-zinc-300 focus:bg-white focus:outline-none"
+                className="min-w-0 flex-1 rounded bg-transparent px-1 py-0.5 text-sm font-medium text-zinc-900 focus:outline-none"
               />
-              <CopyButton text={title} />
-            </li>
-          ))}
-        </ol>
+              <CopyButton text={titles[selected] ?? ""} />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAllTitles(true)}
+              className="text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+            >
+              Trocar título (ver as 5 opções)
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mb-4">
